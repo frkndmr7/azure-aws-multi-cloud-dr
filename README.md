@@ -1,6 +1,6 @@
 # Azure + AWS Multi-Cloud DR — URL Shortener
 
-Bu aşama yalnızca yerel, bellek içi URL kısaltma uygulamasıdır. Veriler süreç yeniden başladığında kaybolur; süreçler arasında paylaşılmaz.
+Varsayılan bellek içi depoda veriler süreç yeniden başladığında kaybolur ve süreçler arasında paylaşılmaz.
 
 ## Yerel çalıştırma
 
@@ -16,7 +16,13 @@ pytest -q
 
 Ortam değişkenleri: `CLOUD_ROLE` (`azure` veya `aws`, varsayılan `azure`), `WRITER_MODE` (`active`, `standby` veya `frozen`, varsayılan `active`) ve `WRITER_EPOCH` (negatif olmayan tam sayı, varsayılan `1`). AWS üzerinde normal koşullarda `WRITER_MODE=standby` açıkça ayarlanmalıdır. `frozen` yanıtındaki `Retry-After` değeri 60 saniyedir.
 
-`/health/dr` yalnızca yerel yapılandırmayı gösterir. Health kontrolleri yazma yetkisi vermez; writer mode dağıtık fencing sağlamaz. DNS failover ve write promotion ayrı işlemlerdir ve bu aşamada uygulanmamıştır. Readiness bu bellek içi uygulamanın çalıştığını gösterir, bulut bağımlılıklarını kontrol etmez.
+`/health/dr` yalnızca yerel yapılandırmayı gösterir. Health kontrolleri yazma yetkisi vermez; writer mode dağıtık fencing sağlamaz. DNS failover ve write promotion ayrı işlemlerdir ve bu aşamada uygulanmamıştır. Readiness uygulamanın çalıştığını gösterir; Cosmos DB veya diğer bulut bağımlılıklarını kontrol etmez.
+
+## Cosmos DB
+
+`REPOSITORY_BACKEND` varsayılan olarak `memory`, Cosmos için `cosmos` seçilir. Cosmos seçildiğinde `COSMOS_ENDPOINT`, `COSMOS_DATABASE` ve `COSMOS_CONTAINER` zorunludur. Kimlik doğrulama Azure Identity `DefaultAzureCredential` kullanır; uygun Azure kimliği ve Cosmos DB veri erişim izinleri gereklidir. Uygulama kaynak oluşturmaz.
+
+Küçük ölçekli PoC için container partition key'i `/id` olarak seçilmiştir; okumalar ID ve partition key ile yapılır. Cosmos kaynakları sonraki görevde oluşturulacaktır. Bu adapter gerçek Cosmos DB ortamında henüz test edilmemiştir.
 
 ## Docker
 
@@ -36,4 +42,4 @@ curl http://localhost:8000/health/ready
 curl http://localhost:8000/health/dr
 ```
 
-`KOD` yerine oluşturma yanıtındaki `id` değerini kullanın. Gerçek bulut entegrasyonu, replikasyon ve failback henüz uygulanmamıştır; RPO veya RTO garantisi verilmez.
+`KOD` yerine oluşturma yanıtındaki `id` değerini kullanın. Canlı bulut doğrulaması, replikasyon ve failback henüz uygulanmamıştır; RPO veya RTO garantisi verilmez.

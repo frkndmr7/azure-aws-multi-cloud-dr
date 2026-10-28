@@ -1,6 +1,8 @@
 import logging
 import secrets
 import string
+from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Request, status
@@ -22,8 +24,35 @@ def generate_code() -> str:
 
 def create_app(settings: Settings | None = None, repository: URLRepository | None = None) -> FastAPI:
     settings = settings if settings is not None else Settings.from_env()
-    repository = repository if repository is not None else InMemoryRepository()
-    app = FastAPI(title="URL Shortener")
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        if repository is not None or settings.repository_backend == "memory":
+            yield
+            return
+        from azure.cosmos import CosmosClient
+        from azure.identity import DefaultAzureCredential
+        from starlette.concurrency import run_in_threadpool
+
+        credential = DefaultAzureCredential()
+        client = None
+        try:
+            client = await run_in_threadpool(CosmosClient, settings.cosmos_endpoint, credential)
+            container = client.get_database_client(settings.cosmos_database).get_container_client(settings.cosmos_container)
+            from app.repositories.cosmos import CosmosRepository
+            app.state.repository = CosmosRepository(container)
+            yield
+        finally:
+            try:
+                if client is not None:
+                    await run_in_threadpool(client.close)
+            finally:
+                await run_in_threadpool(credential.close)
+
+    app = FastAPI(title="URL Shortener", lifespan=lifespan)
+    if repository is not None:
+        app.state.repository = repository
+    elif settings.repository_backend == "memory":
+        app.state.repository = InMemoryRepository()
 
     @app.exception_handler(Exception)
     async def unexpected_error(request: Request, exc: Exception) -> JSONResponse:
@@ -40,7 +69,7 @@ def create_app(settings: Settings | None = None, repository: URLRepository | Non
             now = datetime.now(timezone.utc)
             record = URLRecord(id=generate_code(), original_url=str(payload.original_url), created_at=now,
                                updated_at=now, origin_cloud=settings.cloud, writer_epoch=settings.writer_epoch)
-            if repository.create_if_absent(record):
+            if app.state.repository.create_if_absent(record):
                 return record
         raise HTTPException(status_code=503, detail="Unable to allocate a short code; please retry")
 
@@ -58,7 +87,7 @@ def create_app(settings: Settings | None = None, repository: URLRepository | Non
 
     @app.get("/api/urls/{code}", response_model=URLRecord)
     def get_url(code: str) -> URLRecord:
-        record = repository.get_by_id(code)
+        record = app.state.repository.get_by_id(code)
         if record is None or record.deleted:
             raise HTTPException(status_code=404, detail="Short code not found")
         return record

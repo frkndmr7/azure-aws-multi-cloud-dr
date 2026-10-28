@@ -11,6 +11,20 @@ class Settings:
     cloud: Cloud = "azure"
     writer_mode: WriterMode = "active"
     writer_epoch: int = 1
+    repository_backend: Literal["memory", "cosmos"] = "memory"
+    cosmos_endpoint: str = ""
+    cosmos_database: str = ""
+    cosmos_container: str = ""
+
+    def __post_init__(self) -> None:
+        if self.repository_backend not in ("memory", "cosmos"):
+            raise ValueError("REPOSITORY_BACKEND must be memory or cosmos")
+        if self.repository_backend == "cosmos":
+            missing = [name for name, value in (("COSMOS_ENDPOINT", self.cosmos_endpoint),
+                       ("COSMOS_DATABASE", self.cosmos_database),
+                       ("COSMOS_CONTAINER", self.cosmos_container)) if not value.strip()]
+            if missing:
+                raise ValueError("Missing Cosmos configuration: " + ", ".join(missing))
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -23,4 +37,8 @@ class Settings:
         epoch = int(os.getenv("WRITER_EPOCH", "1"))
         if epoch < 0:
             raise ValueError("WRITER_EPOCH must be non-negative")
-        return cls(cast(Cloud, cloud), cast(WriterMode, mode), epoch)
+        return cls(cloud=cast(Cloud, cloud), writer_mode=cast(WriterMode, mode), writer_epoch=epoch,
+                   repository_backend=cast(Literal["memory", "cosmos"], os.getenv("REPOSITORY_BACKEND", "memory")),
+                   cosmos_endpoint=os.getenv("COSMOS_ENDPOINT", ""),
+                   cosmos_database=os.getenv("COSMOS_DATABASE", ""),
+                   cosmos_container=os.getenv("COSMOS_CONTAINER", ""))
