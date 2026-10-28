@@ -1,6 +1,6 @@
 # Azure Cosmos DB altyapısı
 
-`modules/azure-cosmos` kaynak tanımlarını, `live/azure/dev/cosmos` ise dev ortamı girdilerini içerir. Deployment denemesinde resource group oluşturuldu; Cosmos DB hesabı West Europe bölgesinde yeni müşteri kabul edilmediği için 403 hatasıyla reddedildi. Alternatif olarak North Europe seçildi; bölgesel uygunluk ve kapasite ancak deployment sırasında kesinleşir. Resource group West Europe’da kalır; Cosmos hesabı farklı bir Azure bölgesinde bulunabilir.
+`modules/azure-cosmos` kaynak tanımlarını, `live/azure/dev/cosmos` ise dev ortamı girdilerini içerir. Deployment denemesinde resource group oluşturuldu; Cosmos DB hesabı West Europe bölgesinde yeni müşteri kabul edilmediği için 403 hatasıyla reddedildi. Alternatif olarak North Europe seçildi; bölgesel uygunluk ve kapasite ancak deployment sırasında kesinleşir. Resource group West Europe’da kalır; Cosmos hesabı farklı bir Azure bölgesinde bulunabilir. North Europe denemesi yüksek talep nedeniyle ServiceUnavailable ile başarısız oldu. Azure’da Failed durumunda bir Cosmos account kaydı görünüyor; bu kayıt Terraform state’inde değil ve yeniden denemeden önce state ile Azure arasındaki durum değerlendirilmelidir.
 
 ## Hazırlık ve doğrulama
 
