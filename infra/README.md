@@ -17,7 +17,7 @@ terragrunt validate
 terragrunt plan
 ```
 
-Hesap adı 3–44 küçük harf, rakam veya tire içermeli ve küresel olarak benzersiz olmalıdır. `COSMOS_ACCOUNT_NAME` verilmezse plan doğrulaması başarısız olur. Veritabanı, container, bölge ve maliyet ayarları `terragrunt.hcl` girdilerinden değiştirilebilir. Plan Azure kimliği ve subscription gerektirir; kod doğrulaması Azure kaynağı oluşturmaz. Planı ve olası maliyeti inceleyip açık onay aldıktan sonra ayrı bir adımda `terragrunt apply` kullanılabilir. Terraform bağımlılıkları sırayla resource group, Cosmos account, SQL database ve `/id` partition key'li SQL container oluşturur. Kaynaklarda `prevent_destroy` vardır; bu koruma kaynak bloğu kaldırılırsa geçerli değildir.
+Hesap adı 3–44 küçük harf, rakam veya tire içermeli ve küresel olarak benzersiz olmalıdır. `COSMOS_ACCOUNT_NAME` verilmezse plan doğrulaması başarısız olur. Veritabanı, container, bölge ve maliyet ayarları `terragrunt.hcl` girdilerinden değiştirilebilir. AzureRM otomatik resource provider kaydı yapmaz; gereken provider kayıtları önceden ayrıca doğrulanmalıdır. Plan Azure kimliği ve subscription gerektirir; kod doğrulaması Azure kaynağı oluşturmaz. Planı ve olası maliyeti inceleyip açık onay aldıktan sonra ayrı bir adımda `terragrunt apply` kullanılabilir. Terraform bağımlılıkları sırayla resource group, Cosmos account, SQL database ve `/id` partition key'li SQL container oluşturur. Kaynaklarda `prevent_destroy` vardır; bu koruma kaynak bloğu kaldırılırsa geçerli değildir.
 
 ## Kapasite, güvenlik ve state
 
