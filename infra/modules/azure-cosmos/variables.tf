@@ -17,7 +17,13 @@ variable "environment" {
 }
 
 variable "location" {
-  description = "Single Azure region."
+  description = "Azure region of the resource group."
+  type        = string
+  default     = "westeurope"
+}
+
+variable "cosmos_location" {
+  description = "Single Azure region for the Cosmos DB account."
   type        = string
   default     = "westeurope"
 }

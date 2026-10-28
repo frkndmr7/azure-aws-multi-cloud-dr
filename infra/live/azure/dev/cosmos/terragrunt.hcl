@@ -7,9 +7,10 @@ terraform {
 }
 
 inputs = {
-  project_name = "multicloud-dr"
-  environment  = "dev"
-  location     = "westeurope"
+  project_name    = "multicloud-dr"
+  environment     = "dev"
+  location        = "westeurope"
+  cosmos_location = "northeurope"
   # Set COSMOS_ACCOUNT_NAME to a globally unique account name before deployment.
   cosmos_account_name   = get_env("COSMOS_ACCOUNT_NAME", "")
   cosmos_database_name  = "urlshortener"

@@ -1,6 +1,6 @@
 # Azure Cosmos DB altyapısı
 
-`modules/azure-cosmos` kaynak tanımlarını, `live/azure/dev/cosmos` ise dev ortamı girdilerini içerir. Deployment denemesinde resource group oluşturuldu; Cosmos DB hesabı westeurope bölgesinin yeni müşterilere kapalı olması nedeniyle oluşturulamadı.
+`modules/azure-cosmos` kaynak tanımlarını, `live/azure/dev/cosmos` ise dev ortamı girdilerini içerir. Deployment denemesinde resource group oluşturuldu; Cosmos DB hesabı West Europe bölgesinde yeni müşteri kabul edilmediği için 403 hatasıyla reddedildi. Alternatif olarak North Europe seçildi; bölgesel uygunluk ve kapasite ancak deployment sırasında kesinleşir. Resource group West Europe’da kalır; Cosmos hesabı farklı bir Azure bölgesinde bulunabilir.
 
 ## Hazırlık ve doğrulama
 
@@ -25,4 +25,4 @@ Varsayılan hesap tek bölgelidir; container için 400 RU/s provisioned throughp
 
 Terraform endpoint, database ve container adlarını output olarak verir; uygulamada bunlar sırasıyla `COSMOS_ENDPOINT`, `COSMOS_DATABASE` ve `COSMOS_CONTAINER`, ayrıca `REPOSITORY_BACKEND=cosmos` olarak ayarlanır. Account key output edilmez. Cosmos DB data-plane RBAC yetkileri, ileride uygulamanın managed identity'sine ayrıca verilmelidir; Azure yönetim izinleri tek başına bu erişimi sağlamaz. Container Apps veya identity henüz oluşturulmamıştır. Hesap için varsayılan public network erişimi ve Azure'ın varsayılan yedekleme davranışı kullanılır; ağ erişimini ve yetkilendirmeyi deployment öncesi değerlendirin.
 
-State, `live/azure/dev/cosmos/terraform.tfstate` konumunda yereldir; `.gitignore` ile dışlanır ve account key dahil hassas bilgiler içerebilir. Güvenli saklayın, paylaşmayın ve Git'e eklemeyin. State kaybolursa mevcut kaynakların Terraform ile yönetimi ve eşleştirilmesi sorunlu hale gelir. Yerel state ekip çalışması veya CI/CD için uygun değildir; ileride güvenli, kilitlemeli bir remote backend gerekir. `terragrunt init` ve `validate` gerçek Cosmos DB bağlantısını doğrulamaz.
+State, `live/azure/dev/cosmos/terraform.tfstate` konumunda yereldir; `.gitignore` ile dışlanır ve account key dahil hassas bilgiler içerebilir. Güvenli saklayın, paylaşmayın ve Git'e eklemeyin. Mevcut state korunmalıdır; state kaybolursa mevcut kaynakların Terraform ile yönetimi ve eşleştirilmesi sorunlu hale gelir. Yerel state ekip çalışması veya CI/CD için uygun değildir; ileride güvenli, kilitlemeli bir remote backend gerekir. `terragrunt init` ve `validate` gerçek Cosmos DB bağlantısını doğrulamaz.
