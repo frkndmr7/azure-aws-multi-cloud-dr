@@ -31,6 +31,14 @@ docker build -t url-shortener .
 docker run --rm -p 8000:8000 -e WRITER_MODE=active url-shortener
 ```
 
+## GHCR image yayını
+
+Manuel yayın workflow'u `.github/workflows/publish-image.yml` içinde hazırlanmıştır; henüz çalıştırılmamış ve image yayımlanmamıştır. Yayın için önce workflow değişiklikleri gözden geçirilip varsayılan dala alınmalı; ardından ayrı açık onayla GitHub'da **Actions → Publish container image → Run workflow** üzerinden gözden geçirilmiş dal seçilmelidir. Workflow Python 3.12 testleri başarılıysa `linux/amd64` image'ını `ghcr.io/frkndmr7/azure-aws-multi-cloud-dr:<tam-commit-SHA>` etiketiyle yayımlar. `GITHUB_TOKEN` için `contents: read` ve `packages: write` kullanır; PAT gerekmez. Repository Actions ayarları ile mevcut paket varsa onun Actions erişimi yayın öncesinde doğrulanmalıdır.
+
+Başarılı çalışmanın özetinde kaynak commit ve `ghcr.io/frkndmr7/azure-aws-multi-cloud-dr@sha256:<digest>` görüntülenir. Container Apps için etiketi değil bu digest referansını `CONTAINER_APP_IMAGE` olarak kullanın. SHA etiketi de yeniden yazılabilir; digest yayımlanan içeriği sabitler. Bağımlılıklar ve temel image sürümleri aralıklarla belirtildiği için aynı commit'in yeniden build edilmesi aynı digest'i garanti etmez.
+
+Paket görünürlüğünü public varsaymayın: İlk yayın sonrası GitHub profilinde **Packages → azure-aws-multi-cloud-dr → Package settings** bölümünde görünürlüğü ve **Manage Actions access** izinlerini kontrol edin. Public yapılması gerekiyorsa bunun herkese açık erişim sağlayacağını değerlendirip ayrı açık onay alın; sonra yetkili kişi **Change visibility** adımını kullanabilir. Mevcut paket izinleri veya devralınan repository izinleri bu işlemi etkileyebilir. Public image anonim indirilebilir; yayın öncesinde image içeriğini ve `.dockerignore` kapsamını inceleyin. Bu workflow Azure deployment veya provider kaydı yapmaz.
+
 ## Örnek istekler
 
 ```bash
