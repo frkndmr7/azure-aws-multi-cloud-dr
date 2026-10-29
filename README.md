@@ -22,7 +22,7 @@ Ortam değişkenleri: `CLOUD_ROLE` (`azure` veya `aws`, varsayılan `azure`), `W
 
 `REPOSITORY_BACKEND` varsayılan olarak `memory`, Cosmos için `cosmos` seçilir. Cosmos seçildiğinde `COSMOS_ENDPOINT`, `COSMOS_DATABASE` ve `COSMOS_CONTAINER` zorunludur. Kimlik doğrulama Azure Identity `DefaultAzureCredential` kullanır; uygun Azure kimliği ve Cosmos DB veri erişim izinleri gereklidir. Uygulama kaynak oluşturmaz.
 
-Küçük ölçekli PoC için container partition key'i `/id` olarak seçilmiştir; okumalar ID ve partition key ile yapılır. Cosmos kaynakları sonraki görevde oluşturulacaktır. Bu adapter gerçek Cosmos DB ortamında henüz test edilmemiştir.
+Küçük ölçekli PoC için container partition key'i `/id` olarak seçilmiştir; okumalar ID ve partition key ile yapılır. Sweden Central'daki gerçek Cosmos DB hesabına yerel FastAPI üzerinden bağlantı, kayıt oluşturma, okuma ve yönlendirme testi başarıyla yapılmıştır. Ayrıntılar [altyapı dokümantasyonunda](infra/README.md) yer alır.
 
 ## Docker
 
@@ -42,4 +42,4 @@ curl http://localhost:8000/health/ready
 curl http://localhost:8000/health/dr
 ```
 
-`KOD` yerine oluşturma yanıtındaki `id` değerini kullanın. Canlı bulut doğrulaması, replikasyon ve failback henüz uygulanmamıştır; RPO veya RTO garantisi verilmez.
+`KOD` yerine oluşturma yanıtındaki `id` değerini kullanın. Azure Container Apps deployment'ı, AWS replikasyonu ve failback henüz uygulanmamıştır; RPO veya RTO garantisi verilmez.
