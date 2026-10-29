@@ -17,4 +17,6 @@ inputs = {
   cosmos_container_name = "urls"
   free_tier_enabled     = true
   container_throughput  = 400
+  # Dev-only local developer principal; not a managed identity.
+  local_developer_principal_id = "f9fe2d84-5626-4acb-8ae7-2d194cbfb8a4"
 }

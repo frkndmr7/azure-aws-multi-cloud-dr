@@ -72,3 +72,8 @@ variable "container_throughput" {
     error_message = "container_throughput must be at least 400 RU/s and a multiple of 100."
   }
 }
+
+variable "local_developer_principal_id" {
+  description = "Entra object ID of the local development user granted Cosmos DB access."
+  type        = string
+}
