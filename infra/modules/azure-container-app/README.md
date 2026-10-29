@@ -1,0 +1,22 @@
+# Azure Container Apps PoC
+
+Bu modül hazırlanmıştır; GHCR image henüz yayımlanmamış, `Microsoft.App` provider kaydedilmemiş ve deployment yapılmamıştır. Consumption environment, tek Container App ve isteğe bağlı Cosmos DB data-plane rol ataması ayrı Container Apps state'inde yönetilecek şekilde tanımlanmıştır. Resource group ve Cosmos çıktıları mevcut Cosmos state'inden okunur; Cosmos hesabı, rol tanımı ve yerel kullanıcı ataması bu modülde yönetilmez. State dosyaları hassas olabilir; Git'e eklenmemelidir.
+
+## Aşamalı geçiş
+
+Dev girdileri `infra/live/azure/dev/container-app/terragrunt.hcl` içindedir. Her adım için yeni planı inceleyin ve yalnızca ilgili değişiklik için açık onaydan sonra ilerleyin:
+
+1. **bootstrap:** `deployment_stage = "bootstrap"`, `enable_cosmos_role_assignment = false` ve `enable_active_writer = false`. Uygulama memory backend ve frozen writer ile başlar; ingress bloğu yoktur. İlk planda yalnızca environment ve Container App oluşturulması beklenir. Memory verileri kalıcı değildir ve gerçek trafik için kullanılmamalıdır.
+2. **RBAC:** bootstrap aşamasında kalarak `enable_cosmos_role_assignment = true` yapın. Container App'in mevcut system-assigned principal ID'sine yalnızca ilgili Cosmos container kapsamındaki mevcut özel rol atanır. Planda yalnızca bu atamanın eklenmesi beklenir. Atamanın Azure'da ve data-plane erişiminde yayıldığını doğrulayın; Terraform bağımlılığı yayılımı garanti etmez.
+3. **cosmos_frozen:** atamayı açık tutarak `deployment_stage = "cosmos_frozen"` yapın. Backend Cosmos olur, writer frozen kalır, ingress hâlâ yoktur. App güncellemesi dışında değişiklik beklenmez. Managed Identity ile gerçek Cosmos erişimini ve uygulama başlangıcını kontrollü, yetkili bir data-plane okumasıyla doğrulayın. `/health/ready` tek başına Cosmos erişiminin kanıtı değildir. Ingress yokken ve minimum replica sıfırken uygulama çalışmayabilir; erişim doğrulaması için ayrıca güvenli bir tanılama yöntemi ve gerekirse geçici replica planı tasarlanıp onaylanmalıdır. Bu modül böyle bir tanılama yolu sağlamaz.
+4. **serving:** `deployment_stage = "serving"` ve onaylı `allowed_ingress_cidrs` girin. HTTPS public ingress açılır, Cosmos backend ve frozen writer korunur. App güncellemesi dışında değişiklik beklenmez. IP kısıtlarının gerçekten uygulandığını, tüm endpoint'leri kapsadığını ve erişim hedeflerini doğrulayın. Yazmayı açmak ayrıca `enable_active_writer = true`, ayrı bir plan ve açık onay gerektirir.
+
+Her geçişte Container App değişikliğinin **in-place** olduğunu, environment'ın değiştirilmediğini, Container App'in yeniden oluşturulmadığını, principal ID'nin korunduğunu ve rol atamasının silinmediğini kontrol edin. Cosmos kaynaklarında değişiklik, beklenmedik ekleme, değiştirme, replacement veya silme varsa durun. App ve atama için `prevent_destroy` bulunur; blok kaldırılırsa bu koruma geçerli değildir. Atamayı sonradan kapatmak destroy planlar ve koruma tarafından engellenmelidir. `enable_cosmos_role_assignment = true` olması atamanın önceki bir apply'da yapıldığını veya yayılımı kanıtlamaz: aşamaları aynı apply'da birleştirmeyin. Terraform aşamalar arası geçmişi doğrulamaz; değişim sırası operasyonel bir zorunluluktur.
+
+## Önkoşullar ve sınırlar
+
+Plan için `ARM_SUBSCRIPTION_ID` ve `CONTAINER_APP_IMAGE` (mevcut public `ghcr.io/...@sha256:<digest>`) gerekir. `CONTAINER_APP_ALLOWED_CIDRS`, serving aşamasında virgülle ayrılmış onaylı IPv4 CIDR'ları içermelidir; boş liste ve `/8`'den geniş ağlar reddedilir. Diğer aşamalarda liste boş olabilir. CIDR doğrulaması adreslerin güvenli veya yetkili olduğunu garanti etmez. Image'ın gerçekten mevcut, public ve linux/amd64 uyumlu olduğunu Terraform doğrulamaz.
+
+IP kuralları `/api/urls/{code}`, `/docs` ve diğer tüm endpoint'lere uygulanır; yol bazında erişim ayrımı veya kullanıcı kimlik doğrulaması sağlamaz. Canlı doğrulama olmadan public ingress güvenli kabul edilmemelidir. `frozen` dağıtık fencing değildir. Cosmos istemcisi uygulama başlangıcında bağlantı kurduğundan kimlik veya rol yayılımı hazır değilse başlangıç başarısız olabilir.
+
+Consumption 0.25 vCPU / 0.5 GiB, min 0 ve max 1 replica kullanır. Log Analytics workspace oluşturulmaz; yalnızca log stream kullanılır, kalıcı log tutulmaz. Compute, Cosmos ve ağ maliyetleri ile Free Trial sınırları deployment öncesinde gözden geçirilmelidir. `Microsoft.App` provider kaydı, kota, bölgesel kapasite ve image erişimi ayrıca doğrulanmalıdır; otomatik provider kaydı kapalıdır. Provider kaydı için ayrıca açık onay gerekir.

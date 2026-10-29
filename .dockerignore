@@ -1,6 +1,36 @@
-.git
-.venv
-__pycache__
-.pytest_cache
-*.pyc
-.env
+# Only the Dockerfile, dependency manifest and application Python sources
+# are needed in the build context.
+*
+!Dockerfile
+!requirements.txt
+!app/
+!app/**/
+!app/**/*.py
+
+# Exclusions also apply within otherwise allowed application directories.
+**/.git
+**/.aws
+**/.azure
+**/.codex
+**/.agents
+**/.terraform
+**/.terragrunt-cache
+**/.state-backups
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/tests
+**/.env*
+**/*.tfstate*
+**/*.tfplan
+**/*.tfplan.*
+**/*.plan
+**/*.plan.*
+**/*credential*
+**/*secret*
+**/*token*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.pyc
