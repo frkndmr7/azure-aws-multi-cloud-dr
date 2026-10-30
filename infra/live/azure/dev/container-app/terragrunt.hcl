@@ -16,8 +16,8 @@ inputs = {
   environment_name              = "cae-mcdr-dev"
   container_app_name            = "ca-mcdr-api-dev"
   container_image               = get_env("CONTAINER_APP_IMAGE", "")
-  deployment_stage              = "bootstrap"
-  enable_cosmos_role_assignment = false
+  deployment_stage              = "cosmos_frozen"
+  enable_cosmos_role_assignment = true
   enable_active_writer          = false
   allowed_ingress_cidrs         = [for cidr in split(",", get_env("CONTAINER_APP_ALLOWED_CIDRS", "")) : trimspace(cidr) if trimspace(cidr) != ""]
   cosmos_endpoint               = dependency.cosmos.outputs.cosmos_endpoint
