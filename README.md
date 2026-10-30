@@ -28,7 +28,11 @@ Küçük ölçekli PoC için container partition key'i `/id` olarak seçilmişti
 
 `REPOSITORY_BACKEND=dynamodb`, `AWS_REGION=eu-west-1` ve `DYNAMODB_TABLE` ile seçilir; tablo önceden mevcut olmalıdır. Kimlik bilgileri boto3 standart credential zincirinden alınır. AWS secondary için `CLOUD_ROLE=aws` ve `WRITER_MODE=standby` açıkça ayarlanmalıdır; varsayılan writer modu active olduğu için bunları deployment sırasında doğrulayın. Standby yalnızca API üzerinden yazmayı engeller, dağıtık fencing sağlamaz.
 
-Tablonun partition key alanı `id` (String), sort key yoktur. Bu alan Cosmos `/id` partition key ve kayıt kimliği ile eşleşir. Diğer alanlar URL, UTC zamanları, origin cloud, writer epoch, version ve deleted değerleridir. Çakışmada koşullu `PutItem` mevcut kaydı değiştirmez; `GetItem` tutarlı point-read kullanır. Okuma için tabloya kapsamlı `dynamodb:GetItem`, yalnızca yazma yetkisi verilen kimlikler için ayrıca `dynamodb:PutItem` gerekir. Normal standby çalışma rolünü salt okunur tutun; promotion ayrı IAM yetkisi ve açık onay gerektirir. Tablo ve IAM henüz oluşturulmadı.
+Tablonun partition key alanı `id` (String), sort key yoktur. Bu alan Cosmos `/id` partition key ve kayıt kimliği ile eşleşir. Diğer alanlar URL, UTC zamanları, origin cloud, writer epoch, version ve deleted değerleridir. Çakışmada koşullu `PutItem` mevcut kaydı değiştirmez; `GetItem` tutarlı point-read kullanır. Okuma için tabloya kapsamlı `dynamodb:GetItem`, yalnızca yazma yetkisi verilen kimlikler için ayrıca `dynamodb:PutItem` gerekir. Normal standby çalışma rolünü salt okunur tutun; promotion ayrı IAM yetkisi ve açık onay gerektirir. `mcdr-dev-urls` tablosu ve salt okunur Lambda execution rolü oluşturuldu.
+
+## AWS Lambda secondary hazırlığı
+
+FastAPI için `app.lambda_handler.handler` Mangum giriş noktası ve [Lambda Terraform modülü](infra/modules/aws-lambda-api/README.md) hazırlandı. Önceki apply sırasında Lambda, execution role ve log grubu oluşturuldu; reserved concurrency ayarı kota nedeniyle başarısız oldu. Lambda AWS'de mevcut; doğrudan invoke ile health uçları 200, DynamoDB'de bulunmayan kayıt 404 ve standby POST 403 döndürdü. API Gateway veya function URL oluşturulmadı. Uygulama AWS secondary olarak standby başlar. `AWS_REGION`, Lambda runtime tarafından sağlanan ayrılmış değişkendir; elle ayarlanmaz. Gelecekte API Gateway HTTP API, erişim ve yetkilendirme tasarımı ile ayrı plan ve onaydan sonra eklenmelidir.
 
 ## Docker
 
@@ -56,4 +60,4 @@ curl http://localhost:8000/health/ready
 curl http://localhost:8000/health/dr
 ```
 
-`KOD` yerine oluşturma yanıtındaki `id` değerini kullanın. Azure Container App Cosmos backend ile frozen ve ingress kapalı çalışıyor; Managed Identity ile point-read doğrulandı. AWS deployment, replikasyon ve failback henüz uygulanmadı; RPO veya RTO garantisi verilmez.
+`KOD` yerine oluşturma yanıtındaki `id` değerini kullanın. Azure Container App Cosmos backend ile frozen ve ingress kapalı çalışıyor; Managed Identity ile point-read doğrulandı. AWS'de DynamoDB tablosu ve Lambda oluşturuldu; Doğrudan Lambda health ve salt okunur DynamoDB testleri başarılı oldu. API Gateway, replikasyon ve failback henüz uygulanmadı. RPO veya RTO garantisi verilmez.
