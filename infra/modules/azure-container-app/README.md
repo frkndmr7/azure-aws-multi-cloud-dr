@@ -1,6 +1,6 @@
 # Azure Container Apps PoC
 
-Bu modül hazırlanmıştır; GHCR image henüz yayımlanmamış, `Microsoft.App` provider kaydedilmemiş ve deployment yapılmamıştır. Consumption environment, tek Container App ve isteğe bağlı Cosmos DB data-plane rol ataması ayrı Container Apps state'inde yönetilecek şekilde tanımlanmıştır. Resource group ve Cosmos çıktıları mevcut Cosmos state'inden okunur; Cosmos hesabı, rol tanımı ve yerel kullanıcı ataması bu modülde yönetilmez. State dosyaları hassas olabilir; Git'e eklenmemelidir.
+GHCR image yayımlandı ve anonim pull doğrulandı; `Microsoft.App` kaydedildi. Consumption environment, Container App ve Cosmos data-plane rol ataması dağıtıldı ve ayrı Container Apps state'inde yönetiliyor. Canlı aşama `cosmos_frozen`: ingress kapalı, writer frozen; Managed Identity ile Cosmos point-read başarılı. Resource group ve Cosmos çıktıları mevcut Cosmos state'inden okunur; Cosmos hesabı, rol tanımı ve yerel kullanıcı ataması bu modülde yönetilmez. State dosyaları hassas olabilir; Git'e eklenmemelidir.
 
 ## Aşamalı geçiş
 

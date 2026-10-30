@@ -29,6 +29,18 @@ def create_app(settings: Settings | None = None, repository: URLRepository | Non
         if repository is not None or settings.repository_backend == "memory":
             yield
             return
+        if settings.repository_backend == "dynamodb":
+            import boto3
+            from starlette.concurrency import run_in_threadpool
+            from app.repositories.dynamodb import DynamoDBRepository
+
+            dynamodb = await run_in_threadpool(boto3.resource, "dynamodb", region_name=settings.aws_region)
+            try:
+                app.state.repository = DynamoDBRepository(dynamodb.Table(settings.dynamodb_table))
+                yield
+            finally:
+                await run_in_threadpool(dynamodb.meta.client.close)
+            return
         from azure.cosmos import CosmosClient
         from azure.identity import DefaultAzureCredential
         from starlette.concurrency import run_in_threadpool
