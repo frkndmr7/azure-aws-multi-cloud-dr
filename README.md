@@ -61,3 +61,7 @@ curl http://localhost:8000/health/dr
 ```
 
 `KOD` yerine oluşturma yanıtındaki `id` değerini kullanın. Azure Container App Cosmos backend ile frozen ve ingress kapalı çalışıyor; Managed Identity ile point-read doğrulandı. AWS'de DynamoDB tablosu ve Lambda oluşturuldu; Doğrudan Lambda health ve salt okunur DynamoDB testleri başarılı oldu. API Gateway, replikasyon ve failback henüz uygulanmadı. RPO veya RTO garantisi verilmez.
+
+## Replikasyon hazırlığı
+
+Azure → AWS replikasyonu henüz dağıtılmadı. AWS SQS/DLQ ve ayrı consumer hazırlığı varsayılan olarak kapalıdır; Azure outbox/checkpoint çekirdeği, tek-range SDK adapterı ve kapalı Terraform taslağı hazırdır. Canlı worker/lease entegrasyonu ve kısa ömürlü cross-cloud kimlik doğrulanana kadar producer/dispatcher engellidir. Sıralama, replay, veri kaybı ve maliyet sınırları [replikasyon tasarımında](docs/replication-design.md) açıklanır.
